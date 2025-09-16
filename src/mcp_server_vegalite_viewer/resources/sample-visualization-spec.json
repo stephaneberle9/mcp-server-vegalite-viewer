@@ -1,0 +1,26 @@
+{
+   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+   "title": "Simple Bar Chart",
+    "mark": "bar",
+    "encoding": {
+        "x": {
+            "field": "category",
+            "type": "nominal",
+            "title": "Category"
+        },
+        "y": {
+            "field": "value",
+            "type": "quantitative",
+            "title": "Value"
+        }
+    },
+    "data": {
+        "values": [
+            {"category": "Alpha", "value": 28},
+            {"category": "Beta", "value": 55},
+            {"category": "Gamma", "value": 43},
+            {"category": "Delta", "value": 91},
+            {"category": "Epsilon", "value": 81}
+        ]
+    }
+}

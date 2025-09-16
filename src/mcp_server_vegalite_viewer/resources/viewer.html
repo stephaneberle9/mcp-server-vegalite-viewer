@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/vega@6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <title>Vega-Lite Viewer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f4faff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    #vis {
+      /* Optionally add styles for the visualization container */
+    }
+
+    button {
+      background: #0078d4;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #005fa3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div id="vis"></div>
+    <button id="load-sample-data-btn">Load sample data</button>
+  </div>
+  <script>
+    // --- Sample data loading logic ---
+    loadSampleDataBtn = document.getElementById('load-sample-data-btn');
+
+    loadSampleDataBtn.onclick = function () {
+      fetch('/sample-data', { method: 'GET' })
+        .then(response => {
+          if (!response.ok) 
+            throw new Error('Failed to load sample data (response status: ' + response.status + '): ' + response.statusText);
+        })
+        .then(() => {
+          // Hide the load sample data button after the sample data has been received
+          loadSampleDataBtn.style.display = 'none';
+        })
+        .catch(err => alert(err));
+    };
+
+    // --- WebSocket auto-reconnect logic ---
+    let conn = null;
+    let reconnectInterval = null;
+
+    function connectWebSocket() {
+      const wsUrl = (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":{{port}}/ws";
+      conn = new WebSocket(wsUrl);
+
+      conn.onopen = function () {
+        console.log("WebSocket connection established");
+        if (reconnectInterval) {
+          clearInterval(reconnectInterval);
+          reconnectInterval = null;
+        }
+      };
+
+      conn.onmessage = function (event) {
+        try {
+          const spec = JSON.parse(event.data);
+          // Redraw the visualization with the new Vega-Lite spec
+          vegaEmbed('#vis', spec, { defaultStyle: true })
+            .then(function (result) {
+              // Optionally, do something with result.view
+            })
+            .catch(console.error);
+
+          // Hide the load sample button after any visualization has been received
+          loadSampleBtn.style.display = 'none';
+        } catch (e) {
+          console.log("Received non-JSON or invalid Vega-Lite spec:", event.data);
+        }
+      };
+  
+      conn.onclose = function () {
+        console.log("WebSocket connection closed, will attempt to reconnect...");
+        if (!reconnectInterval) {
+          reconnectInterval = setInterval(() => {
+            console.log("Attempting to reconnect WebSocket...");
+            connectWebSocket();
+          }, 1000);
+        }
+      };
+
+      conn.onerror = function (err) {
+        console.log("WebSocket error:", err);
+        conn.close();
+      };
+    }
+
+    connectWebSocket();
+  </script>
+</body>
+
+</html>

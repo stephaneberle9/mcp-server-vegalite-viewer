@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "vegalite-viewer": {
+      "command": ".venv/Scripts/python.exe",
+      "args": ["-m", "src.mcp_server_vegalite_viewer", "--debug"],
+      "cwd": ".",
+      "env": {}
+    }
+  }
+}

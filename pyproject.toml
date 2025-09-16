@@ -1,0 +1,52 @@
+[project]
+name = "mcp-server-vegalite-viewer"
+dynamic = ["version"]
+description = "A simple data visualization MCP server and viewer web application using Vega-Lite and Uvicorn."
+readme = "README.md"
+authors = [
+    { name = "Stephan Eberle", email = "stephaneberle9@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.11.0",
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "psutil"
+]
+
+[project.optional-dependencies]
+dev = ["pyright>=1.1.389"]
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0"
+]
+
+[project.scripts]
+mcp-server-vegalite-viewer = "mcp_server_vegalite_viewer.__main__:main"
+
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.uv-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+sources = ["src"]
+exclude = [
+  "*.log"
+]
+
+[tool.hatch.build.targets.sdist]
+sources = ["src"]
+exclude = [
+  "*.log",
+  ".venv/"
+]

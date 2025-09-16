@@ -1,0 +1,70 @@
+{
+  "dxt_version": "0.1",
+  "name": "vegalite-viewer",
+  "version": "1.0.0",
+  "description": "A data visualization MCP server using Vega-Lite with an integrated web viewer. Upload datasets and create interactive visualizations that open in your browser.",
+  "author": {
+    "name": "Stephan Eberle",
+    "email": "stephaneberle9@gmail.com"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "src/mcp_server_vegalite_viewer/__main__.py",
+    "mcp_config": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server_vegalite_viewer",
+        "--port",
+        "${user_config.viewer_web_server_port}",
+        "--lazy-view"
+      ],
+      "env": {
+        "PYTHONPATH": "${__dirname}/lib",
+        "VEGALITE_VIEWER_DEBUG": "${user_config.debug_mode}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "upload_data",
+      "description": "Upload and register a dataset for later use in visualizations. Provide the name of the dataset (for later reference) and the dataset itself as a list of records/objects."
+    },
+    {
+      "name": "visualize_data",
+      "description": "Create and display a visualization of a previously uploaded dataset using a Vega-Lite specification. The visualization opens in your web browser automatically."
+    }
+  ],
+  "prompts": [
+    {
+      "name": "Create a simple chart for a JSON dataset",
+      "description": "Advises your LLM create a simple chart with a desired type for a provided JSON dataset",
+      "arguments": ["dataset", "chart_type"],
+      "text": "Create a simple ${arguments.chart_type} chart for the following JSON dataset and display it in my web browser: ${arguments.dataset}"
+    }
+  ],
+  "user_config": {
+    "viewer_web_server_port": {
+      "type": "number",
+      "title": "Viewer Web Server Port",
+      "description": "Port for the visualization web server",
+      "required": false,
+      "default": 8000
+    },
+    "debug_mode": {
+      "type": "boolean",
+      "title": "Debug Mode",
+      "description": "Enable detailed debug logging for troubleshooting",
+      "required": false,
+      "default": false
+    }
+  },
+  "license": "MIT",
+  "compatibility": {
+    "claude_desktop": ">=0.13",
+    "platforms": ["win32", "win32", "darwin"],
+    "runtimes": {
+      "python": ">=3.12"
+    }
+  }
+}
