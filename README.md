@@ -14,7 +14,7 @@ A Model Context Protocol (MCP) server that enables creating and displaying inter
   - [Connect MCP client](#connect-mcp-client)
     - [Claude Desktop](#claude-desktop)
       - [Option 1: One-click installation using MCP Bundle (recommended)](#option-1-one-click-installation-using-mcp-bundle-recommended)
-      - [Option 2: Manual configuration](#option-2-manual-configuration)
+      - [Option 2: Manual configuration using the sources](#option-2-manual-configuration-using-the-sources)
   - [Example prompts](#example-prompts)
 
 # Development
@@ -49,24 +49,11 @@ A Model Context Protocol (MCP) server that enables creating and displaying inter
 
 To treat this project like an installed package for a one-off run, you can use the following command:
 
-1. cd into any non-project directory of your choice
+1. `cd` into any non-project directory of your choice
 
-2. `uvx --from "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]`
+2. `uv run "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]`
 
-> :information_source: When you makes changes to the project's sources, add the `--reinstall` option to 
-> the command to ensure that these changes are taken into account upon subsequent reruns:
-
-```bash
-uvx --from "/path/to/mcp-server-vegalite-viewer project" --reinstall mcp-server-vegalite-viewer [options]
-```
-
-> :information_source: If you see the following warning you can ignore as it applies when targeting published packages
-> but not to packages from a local path.
-
-```
-warning: Tools cannot be reinstalled via uvx; use uv tool upgrade --all --reinstall to 
-reinstall all installed tools, or uvx package@latest to run the latest version of a tool.
-```
+    > :information_source: For true development mode where changes in your codebase are picked up and reflected immediately, you need an editable install. To make this happen, simply add the `--with-editable` option to the command as per above.
 
 ## Test with MCP Inspector
 
@@ -131,7 +118,7 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
 
 > :no_entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as describe above succeeds, the subsequent start of the Vega-Lite Viewer MCP server fails. Opt for manual installation as a workaround for the time being (see below)
 
-#### Option 2: Manual configuration
+#### Option 2: Manual configuration using the sources
 
 - Open Claude Desktop configuration JSON file (accessible from Claude Desktop > `Settings...` > `Developer` > `Edit config`)
 - Add the following entry under `mcpServers`:
@@ -140,11 +127,11 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
   {
     "mcpServers": {
       "vegalite-viewer": {
-        "command": "uvx",
+        "command": "uv",
         "args": [
-          "--from",
+          "run",
+          "--with-editable",
           "/absolute path/to/mcp-server-vegalite-viewer project",
-          "--reinstall",
           "mcp-server-vegalite-viewer",
           "--port",
           "8080",
