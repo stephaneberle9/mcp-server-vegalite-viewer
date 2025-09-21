@@ -1,6 +1,6 @@
 **Vega-Lite Viewer MCP Server**
 
-A [Model Context Protocol](https://modelcontextprotocol.com) (MCP) server that enables creating and displaying interactive data visualizations using the [Vega-Lite](https://vega.github.io/vega-lite) grammar of interactive graphics. This server provides tools to generate charts from data and automatically opens them in a web browser for immediate viewing.
+A [Model Context Protocol](https://modelcontextprotocol.com) (MCP) server that enables creating and displaying interactive data visualizations using the [Vega-Lite](https://vega.github.io/vega-lite) grammar. This server provides tools to generate charts from data and automatically opens them in a web browser for immediate viewing.
 
 - [Development](#development)
   - [Setup](#setup)
