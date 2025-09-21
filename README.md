@@ -1,6 +1,6 @@
 **Vega-Lite Viewer MCP Server**
 
-A Model Context Protocol (MCP) server that enables creating and displaying interactive data visualizations using Vega-Lite. This server provides tools to generate charts from data and automatically opens them in a web browser for immediate viewing.
+A *Model Context Protocol* (MCP) server that enables creating and displaying interactive data visualizations using *Vega-Lite*. This server provides tools to generate charts from data and automatically opens them in a web browser for immediate viewing.
 
 - [Development](#development)
   - [Setup](#setup)
@@ -91,7 +91,7 @@ npx @modelcontextprotocol/inspector
 
 - Connect to MCP server: `Connect` or `Restart`
 
-  > :information_source: The local Vega-Lite Viewer MCP server instance is started automatically
+  > :information_source: The local *Vega-Lite Viewer* MCP server instance is started automatically
 
 - Find MCP server logs in `%TEMP%\mcp-server-vegalite-viewer.log` (Windows) or `${TMPDIR:-/tmp}/mcp-server-vegalite-viewer.log` (Linux/macOS)
 
@@ -99,7 +99,7 @@ npx @modelcontextprotocol/inspector
 
 ### MCP Bundle (formerly Desktop Extension)
 
-To create a MCP Bundle (MCPB) for one-click installation in Claude Desktop:
+To create a MCP Bundle (MCPB) for one-click installation in *Claude Desktop*:
 
 ```bash
 # Install MCPB CLI globally
@@ -117,7 +117,7 @@ mcpb pack . dist\vegalite-viewer.mcpb  # Windows
 mcpb pack . dist/vegalite-viewer.mcpb  # Linux/macOS
 ```
 
-This will create a `dist` folder containing a `vegalite-viewer.mcpb` file that can be easily installed in Claude Desktop as an extension (see [here](https://www.anthropic.com/engineering/desktop-extensions) for details).
+This will create a `dist` folder containing a `vegalite-viewer.mcpb` file that can be easily installed in *Claude Desktop* as an extension (see [here](https://www.anthropic.com/engineering/desktop-extensions) for details).
 
 ### Python Package Distribution (rarely needed)
 
@@ -147,16 +147,16 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
 #### Option 1: One-click installation using MCP Bundle (recommended)
 
 1. Create the MCPB bundle (see previous section)
-2. In Claude Desktop, go to `Settings...` > `Extensions`
+2. In *Claude Desktop*, go to `Settings...` > `Extensions`
 3. Drag & drop the `vegalite-viewer.mcpb` file from the `dist` folder into the `Extensions` list
 4. Click `Install`, wait (patiently) until installation is complete, and close the install dialog
 5. Locate the `vegalite-viewer` in the `Extensions` list, click `Configure` and adjust viewer web server port and debug logging to your liking
 
-> :no_entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as describe above succeeds, the subsequent start of the Vega-Lite Viewer MCP server fails. Opt for manual installation as a workaround for the time being (see below)
+> :no_entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as describe above succeeds, the subsequent start of the *Vega-Lite Viewer* MCP server fails. Opt for manual installation as a workaround for the time being (see below)
 
 #### Option 2: Manual configuration using the sources
 
-- Open Claude Desktop configuration JSON file (accessible from Claude Desktop > `Settings...` > `Developer` > `Edit config`)
+- Open *Claude Desktop* configuration JSON file (accessible from *Claude Desktop* > `Settings...` > `Developer` > `Edit config`)
 - Add the following entry under `mcpServers`:
 
   ```json
@@ -179,6 +179,8 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
   ```
 
 ## Example prompts
+
+The following example prompts can be used to test the *Vega-Lite Viewer* MCP server functionality in *Claude Desktop* or any other MCP client.
 
 - Create a simple bar chart for the following JSON dataset and display it in my web browser: 
 [
