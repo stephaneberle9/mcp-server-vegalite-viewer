@@ -6,8 +6,8 @@ A Model Context Protocol (MCP) server that enables creating and displaying inter
   - [Setup](#setup)
   - [Run inside dev environment](#run-inside-dev-environment)
   - [Run outside dev environment](#run-outside-dev-environment)
-  - [Test with MCP Inspector](#test-with-mcp-inspector)
-  - [Packaging](#packaging)
+  - [Run with MCP Inspector](#run-with-mcp-inspector)
+  - [Package](#package)
     - [MCP Bundle (formerly Desktop Extension)](#mcp-bundle-formerly-desktop-extension)
     - [Python Package Distribution (rarely needed)](#python-package-distribution-rarely-needed)
 - [Usage](#usage)
@@ -25,66 +25,97 @@ A Model Context Protocol (MCP) server that enables creating and displaying inter
 - Install required development tools:
   
   ```bash
+  # Install build tools and uv package manager
   python -m pip install build uv
   ```
 
 ## Run inside dev environment
 
-1. `uv venv`
+```bash
+# Create virtual environment
+uv venv
 
-2. `.venv\Scripts\activate` (Windows) or `source ./.venv/bin/activate` (macOS/Linux)
+# Activate virtual environment
+.venv\Scripts\activate  # Windows
+source ./.venv/bin/activate  # Linux/macOS
 
-3. `uv pip install -e .`
+# Install project in editable mode with live code reloading
+uv pip install -e .
 
-4. Run
+# Run the MCP server (choose one option):
 
-    - as Python module: `mcp-server-vegalite-viewer [options]` or `python -m mcp_server_vegalite_viewer [options]`
-    - with FastMCP CLI using MCP configuration file as entrypoint: `fastmcp run mcp.json`
+# Option 1: Run as Python module
+mcp-server-vegalite-viewer [options]
+# or
+python -m mcp_server_vegalite_viewer [options]
 
-5. Press `Ctrl+C` to exit the server
+# Option 2: Run with FastMCP CLI using MCP configuration file
+fastmcp run mcp.json
 
-6. `deactivate`
+# Stop the server
+# Press Ctrl+C to exit
+
+# Deactivate virtual environment when done
+deactivate
+```
 
 ## Run outside dev environment
 
-To treat this project like an installed package for a one-off run, you can use the following command:
+To treat this project like an installed package for a one-off run:
 
-1. `cd` into any non-project directory of your choice
+```bash
+# Change to any non-project directory
+cd /path/to/some/other/directory
 
-2. `uv run "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]`
+# Run the server directly from project path
+uv run "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
 
-    > :information_source: For true development mode where changes in your codebase are picked up and reflected immediately, you need an editable install. To make this happen, simply add the `--with-editable` option to the command as per above.
+# For development mode with live code reloading (editable install)
+uv run --with-editable "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
+```
 
-## Test with MCP Inspector
+## Run with MCP Inspector
 
-- Start and open MCP inspector in your browser: `npx @modelcontextprotocol/inspector`
+```bash
+# Start and open MCP inspector in your browser
+npx @modelcontextprotocol/inspector
+```
 
 - MCP Server configuration:
-  - Transport Type: `STDIO`
-  - Command: 
-    - Windows: `\absolute path\to\mcp-server-vegalite-viewer project\.venv\Scripts\python.exe`
-    - macOS/Linux: `/absolute path/to/mcp-server-vegalite-viewer project/.venv/bin/python`
-  - Arguments: `-m mcp_server_vegalite_viewer --debug`
+
+  | Setting | Value |
+  |---------|-------|
+  | **Transport Type** | `STDIO` |
+  | **Command** | **Windows:**<br>`\absolute path\to\mcp-server-vegalite-viewer project\.venv\Scripts\python.exe`<br>**Linux/macOS:**<br>`/absolute path/to/mcp-server-vegalite-viewer project/.venv/bin/python` |
+  | **Arguments** | `-m mcp_server_vegalite_viewer --debug` |
 
 - Connect to MCP server: `Connect` or `Restart`
 
   > :information_source: The local Vega-Lite Viewer MCP server instance is started automatically
 
-- Find MCP server logs in `%TEMP%\mcp-server-vegalite-viewer.log` (Windows) or `${TMPDIR:-/tmp}/mcp-server-vegalite-viewer.log` (macOs/Linux)
+- Find MCP server logs in `%TEMP%\mcp-server-vegalite-viewer.log` (Windows) or `${TMPDIR:-/tmp}/mcp-server-vegalite-viewer.log` (Linux/macOS)
 
-## Packaging
+## Package
 
 ### MCP Bundle (formerly Desktop Extension)
 
 To create a MCP Bundle (MCPB) for one-click installation in Claude Desktop:
 
-1. Install MCPB CLI: `npm install -g @anthropic-ai/mcpb`
+```bash
+# Install MCPB CLI globally
+npm install -g @anthropic-ai/mcpb
 
-2. Validate MCPB manifest (optional): `mcpb validate manifest.json`
+# Validate MCPB manifest (optional)
+mcpb validate manifest.json  # Windows
+mcpb validate manifest.json  # Linux/macOS
 
-3. Install "fat" package including this MCP server package and all dependencies into `lib` subfolder: `uv pip install . --target lib --upgrade`
+# Install "fat" package including this MCP server package and all dependencies into `lib` subfolder
+uv pip install . --target lib --upgrade
 
-4. Create MCP Bundle: `mcpb pack . dist\vegalite-viewer.mcpb` (Windows) or `mcpb pack . dist/vegalite-viewer.mcpb` (macOS/Linux)
+# Create MCP Bundle
+mcpb pack . dist\vegalite-viewer.mcpb  # Windows
+mcpb pack . dist/vegalite-viewer.mcpb  # Linux/macOS
+```
 
 This will create a `dist` folder containing a `vegalite-viewer.mcpb` file that can be easily installed in Claude Desktop as an extension (see [here](https://www.anthropic.com/engineering/desktop-extensions) for details).
 
@@ -92,13 +123,18 @@ This will create a `dist` folder containing a `vegalite-viewer.mcpb` file that c
 
 For publishing to PyPI or integrating with Python package managers:
 
-1. `uv venv`
+```bash
+# Create and activate virtual environment
+uv venv
+.venv\Scripts\activate  # Windows
+source ./.venv/bin/activate  # Linux/macOS
 
-2. `.venv\Scripts\activate` (Windows) or `source ./.venv/bin/activate` (macOS/Linux)
+# Install project dependencies
+uv pip install .
 
-3. `uv pip install .`
-
-4. `uv build`
+# Build distribution packages
+uv build
+```
 
 This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X.tar.gz` and an `mcp_server_vegalite-viewer X.X.X-py3-none-any.whl`.
 
