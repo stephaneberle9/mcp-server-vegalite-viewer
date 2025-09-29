@@ -1,102 +1,137 @@
-import copy
-import os
-import sys
 import asyncio
+import copy
+import importlib.resources as resources
+import json
+import logging
+import os
 import socket
 import tempfile
-import warnings
-import uvicorn
-import json
 import time
-import logging
-import importlib.resources as resources
-from uvicorn.config import LOGGING_CONFIG
-from fastapi import FastAPI, Request, WebSocket, HTTPException
-from fastapi.responses import Response, RedirectResponse
+import warnings
+from typing import Any
+
+import uvicorn
+from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel
-from typing import Any, Optional
+from uvicorn.config import LOGGING_CONFIG
+
 from . import LOCALHOST
 from .viewer_manager import ViewerManager
 
-# Suppress specific deprecation warnings from websockets/uvicorn until they fix the compatibility issue. These warnings 
+# Suppress specific deprecation warnings from websockets/uvicorn until they fix the compatibility issue. These warnings
 # come from uvicorn's internal usage of websockets library, not our code
 # (see https://github.com/encode/uvicorn/discussions/2476 for details)
-warnings.filterwarnings("ignore", message="websockets.legacy is deprecated", category=DeprecationWarning)
-warnings.filterwarnings("ignore", message="websockets.server.WebSocketServerProtocol is deprecated", category=DeprecationWarning)
-warnings.filterwarnings("ignore", message="remove second argument of ws_handler", category=DeprecationWarning)
+warnings.filterwarnings(
+    "ignore", message="websockets.legacy is deprecated", category=DeprecationWarning
+)
+warnings.filterwarnings(
+    "ignore",
+    message="websockets.server.WebSocketServerProtocol is deprecated",
+    category=DeprecationWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message="remove second argument of ws_handler",
+    category=DeprecationWarning,
+)
 
 WEB_SERVER_PORT_LOCK_SECS = 600
-WEB_SERVER_CONTROLLER_STATE_FILE = os.path.join(os.path.expanduser("~"), ".mcp", __package__, ".web_server_controller_state.json")
-WEB_SERVER_LOCKED_PORTS_KEY = 'locked_ports'
+WEB_SERVER_CONTROLLER_STATE_FILE = os.path.join(
+    os.path.expanduser("~"), ".mcp", __package__, ".web_server_controller_state.json"
+)
+WEB_SERVER_LOCKED_PORTS_KEY = "locked_ports"
 
 logger = logging.getLogger(__name__)
 
+
 class DuplicateInstanceOnSamePortError(Exception):
     """Raised when another viewer web server instance is already is running on the specified port."""
-    def __init__(self, conflicting_port: Optional[int]):
+
+    def __init__(self, conflicting_port: int | None):
         self.conflicting_port = conflicting_port
 
     def __str__(self):
         return (
             "Another viewer web server instance is already running "
-            f"on port {self.conflicting_port}" if self.conflicting_port else f"and potentially using the same port"
+            f"on port {self.conflicting_port}"
+            if self.conflicting_port
+            else "and potentially using the same port"
         )
+
 
 class PortInUseByAnotherServiceError(Exception):
     """Raised when another service on the this machine is already using the specified port."""
+
     def __init__(self, port: int):
         self.port = port
 
     def __str__(self):
         return f"Port {self.port} is already in use by another service on this machine"
 
+
 # Create viewer manager instance internal to web server
 _viewer_manager = ViewerManager()
+
 
 # Request model for live data endpoint
 class LiveDataRequest(BaseModel):
     spec: Any
 
+
 app = FastAPI()
+
 
 @app.get("/")
 async def root(request: Request):
     """Renders viewer.html by substituting {{port}} placeholder(s) with actual web server port and returns resulting
     HTML content to the client (web browser)."""
     # Load viewer html template
-    viewer_html_template = resources.read_text(f"{__package__}.resources", "viewer.html")
+    viewer_html_template = resources.read_text(
+        f"{__package__}.resources", "viewer.html"
+    )
 
     # Fill in the actual web server port
-    viewer_html_content = viewer_html_template.replace("{{port}}", str(request.url.port))
-    
+    viewer_html_content = viewer_html_template.replace(
+        "{{port}}", str(request.url.port)
+    )
+
     # Return response containing the rendered viewer HTML content
     return Response(content=viewer_html_content, media_type="text/html")
+
 
 @app.get("/favicon.ico")
 async def favicon():
     """Redirects favicon requests to Vega-Lite's official favicon."""
     return RedirectResponse(url="https://vega.github.io/favicon.ico", status_code=301)
 
+
 @app.get("/sample-data")
 async def sample_data():
     """Loads and broadcasts sample visualization specification to connected clients (web browsers) for demonstration purposes."""
     try:
         # Load sample visualization specification
-        sample_spec_content = resources.read_text(f"{__package__}.resources", "sample-visualization-spec.json")
+        sample_spec_content = resources.read_text(
+            f"{__package__}.resources", "sample-visualization-spec.json"
+        )
         sample_spec_json = json.loads(sample_spec_content)
 
         # Broadcast visualization to all connected clients
         await _viewer_manager.broadcast_visualization(json.dumps(sample_spec_json))
 
-        return {"status": "success", "message": "Sample visualization specification successfully sent to connected clients"}
+        return {
+            "status": "success",
+            "message": "Sample visualization specification successfully sent to connected clients",
+        }
     except Exception as e:
         msg = f"Failed to broadcast live visualization specification: {e}"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
 
+
 @app.post("/live-data")
 async def live_data(request: LiveDataRequest):
-    """Receives visualization specifications composed of a Vega-Lite specification and a dataset and broadcasts them to 
+    """Receives visualization specifications composed of a Vega-Lite specification and a dataset and broadcasts them to
     connected visualization clients (web browsers)."""
     try:
         # Convert visualization specification to JSON string if it's not already
@@ -108,11 +143,15 @@ async def live_data(request: LiveDataRequest):
         # Broadcast visualization specification to all connected clients
         await _viewer_manager.broadcast_visualization(spec_json)
 
-        return {"status": "success", "message": "Visualization specification successfully sent to connected clients"}
+        return {
+            "status": "success",
+            "message": "Visualization specification successfully sent to connected clients",
+        }
     except Exception as e:
         msg = f"Failed to broadcast live visualization specification: {e}"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -124,28 +163,29 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception:
         _viewer_manager.disconnect(websocket)
 
-class WebServerController():
+
+class WebServerController:
     def __init__(self):
         self._port = None
         self._locked_ports = {}
         self._web_server = None
         self._web_server_task = None
-        
+
     def _load_state(self):
         """Load current state from state file."""
         if os.path.exists(WEB_SERVER_CONTROLLER_STATE_FILE):
             try:
                 # Load persisted state
-                with open(WEB_SERVER_CONTROLLER_STATE_FILE, "r") as f:
+                with open(WEB_SERVER_CONTROLLER_STATE_FILE) as f:
                     # Do nothing if state file is empty or contains only whitespace
                     content = f.read().strip()
                     if not content:
                         return
-                    
+
                     # Try to parse as JSON
                     state = json.loads(content)
                     persisted_ports = state.get(WEB_SERVER_LOCKED_PORTS_KEY, {})
-                    
+
                     # Filter out stale entries
                     now = time.time()
                     for port_str, locked_until in persisted_ports.items():
@@ -169,13 +209,16 @@ class WebServerController():
         """Save current state to state file."""
         try:
             # Make sure that parent folder of state file exists
-            os.makedirs(os.path.dirname(WEB_SERVER_CONTROLLER_STATE_FILE), exist_ok=True)
+            os.makedirs(
+                os.path.dirname(WEB_SERVER_CONTROLLER_STATE_FILE), exist_ok=True
+            )
 
             # Persist current state
             with open(WEB_SERVER_CONTROLLER_STATE_FILE, "w") as f:
                 state = {
                     WEB_SERVER_LOCKED_PORTS_KEY: {
-                        str(port): locked_until for port, locked_until in self._locked_ports.items()
+                        str(port): locked_until
+                        for port, locked_until in self._locked_ports.items()
                     }
                 }
                 json.dump(state, f, indent=2)
@@ -198,9 +241,9 @@ class WebServerController():
             self._load_state()
             self._locked_ports[port] = locked_until
             self._save_state()
-        except:
-            # State file access conflict is a strong indicator that another viewer web server instance is about to 
-            # manipulate it - we cannot really know which port it is targeting but to be on the safe side, let's assume 
+        except Exception:
+            # State file access conflict is a strong indicator that another viewer web server instance is about to
+            # manipulate it - we cannot really know which port it is targeting but to be on the safe side, let's assume
             # that it is the same port
             raise DuplicateInstanceOnSamePortError(None)
 
@@ -225,9 +268,9 @@ class WebServerController():
             try:
                 s.bind((LOCALHOST, port))
                 return False
-            except socket.error:
+            except OSError:
                 return True
-            
+
     def _get_log_config(self) -> dict[str, Any]:
         # Get the log level from the root logger
         log_level = logging.getLogger().getEffectiveLevel()
@@ -247,27 +290,35 @@ class WebServerController():
 
         # Create a plain formatter without colors for logging to a log file
         config["formatters"]["plain"] = {
-            "format": '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         }
 
-        # Add a file handler using plain formatter appending to the same log 
+        # Add a file handler using plain formatter appending to the same log
         # file as the root logger
         config["handlers"]["file"] = {
             "formatter": "plain",
             "class": "logging.FileHandler",
             "filename": log_file,
-            "mode": "a", # append to already existing log
+            "mode": "a",  # append to already existing log
             "encoding": "utf8",
         }
 
         # When using stdio transport, stdio is reserved for MCP JSON-RPC traffic.
-        # Therefore redirect all uvicorn logging to stderr (by using uvicorn's 
-        # 'default' handler, see uvicorn.config.LOGGING_CONFIG for details) only 
+        # Therefore redirect all uvicorn logging to stderr (by using uvicorn's
+        # 'default' handler, see uvicorn.config.LOGGING_CONFIG for details) only
         # or stderr and the root logger log file.
         config["loggers"]["uvicorn"] = {"handlers": ["default"], "propagate": False}
-        config["loggers"]["uvicorn.error"] = {"handlers": ["default", "file"], "level": logging.INFO if log_level == logging.DEBUG else logging.ERROR, "propagate": False}
-        config["loggers"]["uvicorn.access"] = {"handlers": ["default"], "level": logging.INFO if log_level == logging.DEBUG else logging.WARNING, "propagate": False}
+        config["loggers"]["uvicorn.error"] = {
+            "handlers": ["default", "file"],
+            "level": logging.INFO if log_level == logging.DEBUG else logging.ERROR,
+            "propagate": False,
+        }
+        config["loggers"]["uvicorn.access"] = {
+            "handlers": ["default"],
+            "level": logging.INFO if log_level == logging.DEBUG else logging.WARNING,
+            "propagate": False,
+        }
 
         # Avoid suppression of application logs by configuring root logger to use the Uvicorn log handlers
         config["root"] = {"handlers": ["default", "file"], "level": log_level}
@@ -275,7 +326,7 @@ class WebServerController():
         return config
 
     def start(self, port: int):
-        """Start the viewer web server if there is not another one already running on the specified port 
+        """Start the viewer web server if there is not another one already running on the specified port
         and if the specified port is not in use by any other service running on this machine."""
         # Check inf another viewer web server instance is already running on the same port
         if self.is_already_running_on_same_port(port):
@@ -296,7 +347,8 @@ class WebServerController():
             host=LOCALHOST,
             port=self._port,
             loop="asyncio",
-            log_config=self._get_log_config())
+            log_config=self._get_log_config(),
+        )
         self._web_server = uvicorn.Server(config)
 
         # Start viewer web server asynchronously in a background task

@@ -4,9 +4,13 @@ A [Model Context Protocol](https://modelcontextprotocol.com) (MCP) server that e
 
 - [Development](#development)
   - [Setup](#setup)
-  - [Run inside dev environment](#run-inside-dev-environment)
-  - [Run outside dev environment](#run-outside-dev-environment)
-  - [Run with MCP Inspector](#run-with-mcp-inspector)
+  - [Run](#run)
+    - [Inside dev environment](#inside-dev-environment)
+    - [Outside dev environment](#outside-dev-environment)
+    - [With MCP Inspector](#with-mcp-inspector)
+  - [Check](#check)
+    - [Enable automatic execution on git commit](#enable-automatic-execution-on-git-commit)
+    - [Manual execution](#manual-execution)
   - [Package](#package)
     - [MCP Bundle (formerly Desktop Extension)](#mcp-bundle-formerly-desktop-extension)
     - [Python Package Distribution (rarely needed)](#python-package-distribution-rarely-needed)
@@ -23,13 +27,15 @@ A [Model Context Protocol](https://modelcontextprotocol.com) (MCP) server that e
 
 - Install [Python 3.12](https://www.python.org/downloads) or later
 - Install required development tools:
-  
+
   ```bash
   # Install build tools and uv package manager
   python -m pip install build uv
   ```
 
-## Run inside dev environment
+## Run
+
+### Inside dev environment
 
 ```bash
 # Create virtual environment
@@ -59,7 +65,7 @@ fastmcp run mcp.json
 deactivate
 ```
 
-## Run outside dev environment
+### Outside dev environment
 
 To treat this project like an installed package for a one-off run:
 
@@ -74,7 +80,7 @@ uv run "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalit
 uv run --with-editable "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
 ```
 
-## Run with MCP Inspector
+### With MCP Inspector
 
 ```bash
 # Start and open MCP inspector in your browser
@@ -83,23 +89,52 @@ npx @modelcontextprotocol/inspector
 
 - MCP Server configuration:
 
-  | Setting | Value |
-  |---------|-------|
-  | **Transport Type** | `STDIO` |
-  | **Command** | **Windows:**<br>`\absolute path\to\mcp-server-vegalite-viewer project\.venv\Scripts\python.exe`<br>**Linux/macOS:**<br>`/absolute path/to/mcp-server-vegalite-viewer project/.venv/bin/python` |
-  | **Arguments** | `-m mcp_server_vegalite_viewer --debug` |
+  | Setting            | Value                                                                                                                                                                                          |
+  | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | **Transport Type** | `STDIO`                                                                                                                                                                                        |
+  | **Command**        | **Windows:**<br>`\absolute path\to\mcp-server-vegalite-viewer project\.venv\Scripts\python.exe`<br>**Linux/macOS:**<br>`/absolute path/to/mcp-server-vegalite-viewer project/.venv/bin/python` |
+  | **Arguments**      | `-m mcp_server_vegalite_viewer --debug`                                                                                                                                                        |
 
 - Connect to MCP server: `Connect` or `Restart`
 
-  > :information_source: The local *Vega-Lite Viewer* MCP server instance is started automatically
+  > :information*source: The local \_Vega-Lite Viewer* MCP server instance is started automatically
 
 - Find MCP server logs in `%TEMP%\mcp-server-vegalite-viewer.log` (Windows) or `${TMPDIR:-/tmp}/mcp-server-vegalite-viewer.log` (Linux/macOS)
+
+## Check
+
+This project uses `pre-commit` hooks for running static checks to maintain high code quality standards. These static checks include:
+
+- **Ruff**: Python linting and code formatting
+- **ty**: Modern type checking for Python
+- **Prettier**: JSON, YAML, and Markdown formatting
+- **Codespell**: Common spelling error detection
+- **pyproject.toml validation**: Project configuration validation
+
+### Enable automatic execution on git commit
+
+```bash
+# Install pre-commit hooks
+uv run pre-commit install
+```
+
+### Manual execution
+
+```bash
+# Run all checks on all files
+uv run pre-commit run --all-files
+
+# Run individual tools
+uv run ruff format          # Code formatting
+uv run ruff check --fix     # Linting with auto-fix
+uv run ty check             # Type checking
+```
 
 ## Package
 
 ### MCP Bundle (formerly Desktop Extension)
 
-To create a MCP Bundle (MCPB) for one-click installation in *Claude Desktop*:
+To create a MCP Bundle (MCPB) for one-click installation in _Claude Desktop_:
 
 ```bash
 # Install MCPB CLI globally
@@ -117,7 +152,7 @@ mcpb pack . dist\vegalite-viewer.mcpb  # Windows
 mcpb pack . dist/vegalite-viewer.mcpb  # Linux/macOS
 ```
 
-This will create a `dist` folder containing a `vegalite-viewer.mcpb` file that can be easily installed in *Claude Desktop* as an extension (see [here](https://www.anthropic.com/engineering/desktop-extensions) for details).
+This will create a `dist` folder containing a `vegalite-viewer.mcpb` file that can be easily installed in _Claude Desktop_ as an extension (see [here](https://www.anthropic.com/engineering/desktop-extensions) for details).
 
 ### Python Package Distribution (rarely needed)
 
@@ -147,16 +182,16 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
 #### Option 1: One-click installation using MCP Bundle (recommended)
 
 1. Create the MCPB bundle (see previous section)
-2. In *Claude Desktop*, go to `Settings...` > `Extensions`
+2. In _Claude Desktop_, go to `Settings...` > `Extensions`
 3. Drag & drop the `vegalite-viewer.mcpb` file from the `dist` folder into the `Extensions` list
 4. Click `Install`, wait (patiently) until installation is complete, and close the install dialog
 5. Locate the `vegalite-viewer` in the `Extensions` list, click `Configure` and adjust viewer web server port and debug logging to your liking
 
-> :no_entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as describe above succeeds, the subsequent start of the *Vega-Lite Viewer* MCP server fails. Opt for manual installation as a workaround for the time being (see below)
+> :no*entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as describe above succeeds, the subsequent start of the \_Vega-Lite Viewer* MCP server fails. Opt for manual installation as a workaround for the time being (see below)
 
 #### Option 2: Manual configuration using the sources
 
-- Open *Claude Desktop* configuration JSON file (accessible from *Claude Desktop* > `Settings...` > `Developer` > `Edit config`)
+- Open _Claude Desktop_ configuration JSON file (accessible from _Claude Desktop_ > `Settings...` > `Developer` > `Edit config`)
 - Add the following entry under `mcpServers`:
 
   ```json
@@ -180,32 +215,32 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
 
 ## Example prompts
 
-The following example prompts can be used to test the *Vega-Lite Viewer* MCP server functionality in *Claude Desktop* or any other MCP client.
+The following example prompts can be used to test the _Vega-Lite Viewer_ MCP server functionality in _Claude Desktop_ or any other MCP client.
 
-- Create a simple bar chart for the following JSON dataset and display it in my web browser: 
-[
+- Create a simple bar chart for the following JSON dataset and display it in my web browser:
+  [
   {
-      "category": "Alpha",
-      "value": 4
+  "category": "Alpha",
+  "value": 4
   },
   {
-      "category": "Bravo",
-      "value": 6
+  "category": "Bravo",
+  "value": 6
   },
   {
-      "category": "Charlie",
-      "value": 10
+  "category": "Charlie",
+  "value": 10
   },
   {
-      "category": "Delta",
-      "value": 3
+  "category": "Delta",
+  "value": 3
   },
   {
-      "category": "Echo",
-      "value": 7
+  "category": "Echo",
+  "value": 7
   },
   {
-      "category": "Foxtrot",
-      "value": 9
+  "category": "Foxtrot",
+  "value": 9
   }
-]
+  ]

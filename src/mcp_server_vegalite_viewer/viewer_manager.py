@@ -1,9 +1,9 @@
 from fastapi import WebSocket
-from typing import List
+
 
 class ViewerManager:
     def __init__(self):
-        self.active_viewer_connections: List[WebSocket] = []
+        self.active_viewer_connections: list[WebSocket] = []
         self.last_visualization = None
 
     async def connect(self, websocket: WebSocket):

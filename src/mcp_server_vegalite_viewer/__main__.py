@@ -1,12 +1,14 @@
 import argparse
+import logging
 import os
 import sys
 import tempfile
+
 import fastmcp
-import logging
+
 from . import LOCALHOST
+from .mcp_server import VegaLiteViewerError, mcp
 from .web_browser import web_browser
-from .mcp_server import mcp, VegaLiteViewerError
 
 logger = logging.getLogger(__name__)
 
@@ -17,37 +19,40 @@ def cli():
 
     # Server options
     parser.add_argument(
-        '-p', '--port',
+        "-p",
+        "--port",
         type=int,
         default=8000,
-        help='Port to run the viewer web server on (default: 8000)'
+        help="Port to run the viewer web server on (default: 8000)",
     )
     parser.add_argument(
-        '--lazy-view',
-        action='store_true',
-        help='Open viewer app in browser lazily upon first visualization'
+        "--lazy-view",
+        action="store_true",
+        help="Open viewer app in browser lazily upon first visualization",
     )
 
     # Logging options
     group = parser.add_mutually_exclusive_group()
+    group.add_argument("--silent", action="store_true", help="Show only error messages")
     group.add_argument(
-        '--silent',
-        action='store_true',
-        help='Show only error messages'
-    )
-    group.add_argument(
-        '--debug',
-        action='store_true',
-        help='Enable debug logging (can also be set through \'VEGALITE_VIEWER_DEBUG\' environment variable)'
+        "--debug",
+        action="store_true",
+        help="Enable debug logging (can also be set through 'VEGALITE_VIEWER_DEBUG' environment variable)",
     )
     return parser.parse_args()
 
+
 def configure_logging(args):
     """Configure logging based on command line arguments."""
-    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     if args.silent:
         log_level = logging.ERROR
-    elif args.debug or os.getenv('VEGALITE_VIEWER_DEBUG', '').lower() in ('1', 'true', 'yes', 'on'):
+    elif args.debug or os.getenv("VEGALITE_VIEWER_DEBUG", "").lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    ):
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
@@ -60,10 +65,11 @@ def configure_logging(args):
         format=log_format,
         handlers=[
             logging.StreamHandler(sys.stderr),
-            logging.FileHandler(log_file, mode='w') # truncate log file on startup
-        ]
+            logging.FileHandler(log_file, mode="w"),  # truncate log file on startup
+        ],
     )
     logger.info(f"Logging to stderr and file: {log_file}")
+
 
 def main():
     args = cli()
@@ -100,6 +106,7 @@ def main():
         sys.exit(1)
     finally:
         logger.info("MCP server shutdown complete")
+
 
 if __name__ == "__main__":
     main()
