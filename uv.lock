@@ -675,8 +675,10 @@ dependencies = [
     { name = "uvicorn", extra = ["standard"] },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
+    { name = "pre-commit" },
+    { name = "ruff" },
     { name = "ty" },
 ]
 test = [
@@ -684,12 +686,6 @@ test = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
-    { name = "ruff" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pre-commit" },
 ]
 
 [package.metadata]
@@ -698,18 +694,21 @@ requires-dist = [
     { name = "fastmcp", specifier = ">=2.11.0" },
     { name = "httpx" },
     { name = "psutil" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
-    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
-    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=4.0.0" },
-    { name = "pytest-mock", marker = "extra == 'test'", specifier = ">=3.10.0" },
-    { name = "ruff", marker = "extra == 'test'" },
-    { name = "ty", marker = "extra == 'dev'" },
     { name = "uvicorn", extras = ["standard"] },
 ]
-provides-extras = ["dev", "test"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pre-commit", specifier = ">=4.3.0" }]
+dev = [
+    { name = "pre-commit", specifier = ">=4.3.0" },
+    { name = "ruff" },
+    { name = "ty" },
+]
+test = [
+    { name = "pytest", specifier = ">=7.0.0" },
+    { name = "pytest-asyncio", specifier = ">=0.21.0" },
+    { name = "pytest-cov", specifier = ">=4.0.0" },
+    { name = "pytest-mock", specifier = ">=3.10.0" },
+]
 
 [[package]]
 name = "mdurl"

@@ -1,5 +1,5 @@
 {
-  "dxt_version": "0.1",
+  "dxt_version": "0.2",
   "name": "vegalite-viewer",
   "version": "1.0.0",
   "description": "A data visualization MCP server using Vega-Lite with an integrated web viewer. Upload datasets and create interactive visualizations that open in your browser.",

@@ -5,6 +5,7 @@ import sys
 import tempfile
 
 import fastmcp
+from dotenv import load_dotenv
 
 from . import LOCALHOST
 from .mcp_server import VegaLiteViewerError, mcp
@@ -39,7 +40,22 @@ def cli():
         action="store_true",
         help="Enable debug logging (can also be set through 'VEGALITE_VIEWER_DEBUG' environment variable)",
     )
-    return parser.parse_args()
+
+    args = parser.parse_args()
+
+    # Complementary options from environment (lower precedence than CLI args)
+    load_dotenv(".env", override=True)
+
+    if not args.debug and os.getenv("VEGALITE_VIEWER_DEBUG", ""):
+        args.debug = os.getenv("VEGALITE_VIEWER_DEBUG", "").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
+        args.debug = True
+
+    return args
 
 
 def configure_logging(args):
@@ -47,12 +63,7 @@ def configure_logging(args):
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     if args.silent:
         log_level = logging.ERROR
-    elif args.debug or os.getenv("VEGALITE_VIEWER_DEBUG", "").lower() in (
-        "1",
-        "true",
-        "yes",
-        "on",
-    ):
+    elif args.debug:
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
@@ -86,7 +97,7 @@ def main():
         # the viewer web server port
         fastmcp.settings.port = args.port
 
-        logger.info("Starting MCP server with stdio transport")
+        # Start MCP server with stdio transport
         mcp.run(transport="stdio")
     except KeyboardInterrupt:
         # Graceful shutdown, suppress noisy logs resulting from asyncio.run task cancellation propagation

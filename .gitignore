@@ -15,3 +15,6 @@ wheels/
 
 # MCPB files
 *.mcpb
+
+# VSCode settings
+.vscode/PythonImportHelper-v2-Completion.json

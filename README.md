@@ -46,17 +46,26 @@ uv venv
 source ./.venv/bin/activate  # Linux/macOS
 
 # Install project in editable mode with live code reloading
-uv pip install -e .
+uv sync
 
 # Run the MCP server (choose one option):
 
 # Option 1: Run as Python module
-mcp-server-vegalite-viewer [options]
+# (see --help for application CLI options)
+mcp-server-vegalite-viewer [application options]
 # or
-python -m mcp_server_vegalite_viewer [options]
+python -m mcp_server_vegalite_viewer [application options]
 
-# Option 2: Run with FastMCP CLI using MCP configuration file
-fastmcp run mcp.json
+# Option 2: Run with FastMCP CLI using inferred MCP server instance
+# (see fastmcp run --help for FastMCP CLI options)
+# Warning: Application CLI options are ignored when using FastMCP CLI
+# ----------------------------------------------------------------------
+# Note: Apparently, the FastMCP CLI doesn't support Python packages yet.
+# Trying to use the command below currently results in this
+# 'ERROR Failed to run: attempted relative import with no known parent package'
+# ----------------------------------------------------------------------
+fastmcp run [FastMCP CLI options] src\mcp_server_vegalite_viewer\mcp_server.py # Windows
+fastmcp run [FastMCP CLI options] src/mcp_server_vegalite_viewer/mcp_server.py # Linux/macOS
 
 # Stop the server
 # Press Ctrl+C to exit
@@ -67,17 +76,12 @@ deactivate
 
 ### Outside dev environment
 
-To treat this project like an installed package for a one-off run:
-
 ```bash
-# Change to any non-project directory
-cd /path/to/some/other/directory
+# Run the MCP server directly from the sources (see --help for CLI options)
+uv run --project "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
 
-# Run the server directly from project path
-uv run "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
-
-# For development mode with live code reloading (editable install)
-uv run --with-editable "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
+# Run as editable install to enable live code reloading during development (see --help for CLI options)
+uv run --with-editable --project "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
 ```
 
 ### With MCP Inspector
@@ -97,7 +101,7 @@ npx @modelcontextprotocol/inspector
 
 - Connect to MCP server: `Connect` or `Restart`
 
-  > :information*source: The local \_Vega-Lite Viewer* MCP server instance is started automatically
+  > :information_source: The local _Vega-Lite Viewer_ MCP server instance is started automatically
 
 - Find MCP server logs in `%TEMP%\mcp-server-vegalite-viewer.log` (Windows) or `${TMPDIR:-/tmp}/mcp-server-vegalite-viewer.log` (Linux/macOS)
 
@@ -114,6 +118,10 @@ This project uses `pre-commit` hooks for running static checks to maintain high 
 ### Enable automatic execution on git commit
 
 ```bash
+# Activate virtual environment
+.venv\Scripts\activate  # Windows
+source ./.venv/bin/activate  # Linux/macOS
+
 # Install pre-commit hooks
 uv run pre-commit install
 ```
@@ -140,6 +148,10 @@ To create a MCP Bundle (MCPB) for one-click installation in _Claude Desktop_:
 # Install MCPB CLI globally
 npm install -g @anthropic-ai/mcpb
 
+# Activate virtual environment
+.venv\Scripts\activate  # Windows
+source ./.venv/bin/activate  # Linux/macOS
+
 # Validate MCPB manifest (optional)
 mcpb validate manifest.json  # Windows
 mcpb validate manifest.json  # Linux/macOS
@@ -159,13 +171,12 @@ This will create a `dist` folder containing a `vegalite-viewer.mcpb` file that c
 For publishing to PyPI or integrating with Python package managers:
 
 ```bash
-# Create and activate virtual environment
-uv venv
+# Activate virtual environment
 .venv\Scripts\activate  # Windows
 source ./.venv/bin/activate  # Linux/macOS
 
 # Install project dependencies
-uv pip install .
+uv sync --no-dev
 
 # Build distribution packages
 uv build
@@ -187,7 +198,7 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
 4. Click `Install`, wait (patiently) until installation is complete, and close the install dialog
 5. Locate the `vegalite-viewer` in the `Extensions` list, click `Configure` and adjust viewer web server port and debug logging to your liking
 
-> :no*entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as describe above succeeds, the subsequent start of the \_Vega-Lite Viewer* MCP server fails. Opt for manual installation as a workaround for the time being (see below)
+> :no_entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as describe above succeeds, the subsequent start of the _Vega-Lite Viewer_ MCP server fails. Opt for manual installation as a workaround for the time being (see below)
 
 #### Option 2: Manual configuration using the sources
 

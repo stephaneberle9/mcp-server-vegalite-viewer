@@ -15,14 +15,17 @@ dependencies = [
     "psutil"
 ]
 
-[project.optional-dependencies]
-dev = ["ty"]
+[dependency-groups]
+dev = [
+    "ty",
+    "pre-commit>=4.3.0",
+    "ruff",
+]
 test = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
-    "ruff"
 ]
 
 [project.scripts]
@@ -53,6 +56,9 @@ exclude = [
   ".venv/"
 ]
 
+[tool.uv]
+default-groups = ["dev", "test"]
+
 [tool.ruff.lint]
 extend-select = ["I", "UP"]
 
@@ -63,8 +69,3 @@ extend-select = ["I", "UP"]
 
 [tool.codespell]
 skip = "*.lock,pyproject.toml,*PythonImportHelper*"
-
-[dependency-groups]
-dev = [
-    "pre-commit>=4.3.0",
-]
