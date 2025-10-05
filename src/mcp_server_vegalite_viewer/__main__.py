@@ -43,9 +43,10 @@ def cli():
 
     args = parser.parse_args()
 
-    # Complementary options from environment (lower precedence than CLI args)
-    load_dotenv(".env", override=True)
+    # Load .env file from current or any parent directory
+    load_dotenv(override=True, verbose=True)
 
+    # Complementary options from environment (lower precedence than CLI args)
     if not args.debug and os.getenv("VEGALITE_VIEWER_DEBUG", ""):
         args.debug = os.getenv("VEGALITE_VIEWER_DEBUG", "").lower() in (
             "1",
@@ -82,6 +83,16 @@ def configure_logging(args):
     logger.info(f"Logging to stderr and file: {log_file}")
 
 
+def get_log_level_name(args) -> str:
+    """Retrieve log level name based on command line arguments."""
+    if args.silent:
+        return logging.getLevelName(logging.ERROR)
+    elif args.debug:
+        return logging.getLevelName(logging.DEBUG)
+    else:
+        return logging.getLevelName(logging.INFO)
+
+
 def main():
     args = cli()
     configure_logging(args)
@@ -98,7 +109,10 @@ def main():
         fastmcp.settings.port = args.port
 
         # Start MCP server with stdio transport
-        mcp.run(transport="stdio")
+        mcp.run(
+            transport="stdio",
+            log_level=get_log_level_name(args),
+        )
     except KeyboardInterrupt:
         # Graceful shutdown, suppress noisy logs resulting from asyncio.run task cancellation propagation
         pass
@@ -115,8 +129,6 @@ def main():
         # Unexpected internal error, include full stack trace
         logger.error(f"Internal error: {e}", exc_info=True)
         sys.exit(1)
-    finally:
-        logger.info("MCP server shutdown complete")
 
 
 if __name__ == "__main__":
