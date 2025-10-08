@@ -5,9 +5,8 @@ import sys
 import tempfile
 
 import fastmcp
-from dotenv import load_dotenv
 
-from . import LOCALHOST
+from . import LOCALHOST, __version__
 from .mcp_server import VegaLiteViewerError, mcp
 from .web_browser import web_browser
 
@@ -16,7 +15,9 @@ logger = logging.getLogger(__name__)
 
 def cli():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Vega-Lite MCP Server and Viewer")
+    parser = argparse.ArgumentParser(
+        description=f"Vega-Lite MCP Server and Viewer (version {__version__})"
+    )
 
     # Server options
     parser.add_argument(
@@ -38,23 +39,19 @@ def cli():
     group.add_argument(
         "--debug",
         action="store_true",
-        help="Enable debug logging (can also be set through 'VEGALITE_VIEWER_DEBUG' environment variable)",
+        help="Enable debug logging (can also be set via 'VEGALITE_VIEWER_DEBUG' environment variable)",
     )
 
     args = parser.parse_args()
 
-    # Load .env file from current or any parent directory
-    load_dotenv(override=True, verbose=True)
-
-    # Complementary options from environment (lower precedence than CLI args)
-    if not args.debug and os.getenv("VEGALITE_VIEWER_DEBUG", ""):
+    # Fallback to environment variables (CLI args take precedence)
+    if not args.debug:
         args.debug = os.getenv("VEGALITE_VIEWER_DEBUG", "").lower() in (
             "1",
             "true",
             "yes",
             "on",
         )
-        args.debug = True
 
     return args
 
@@ -124,6 +121,14 @@ def main():
         else:
             # Unexpected internal error, include full stack trace
             logger.error(f"Internal error: {cause}", exc_info=True)
+        sys.exit(1)
+    except ValueError as e:
+        # Configuration error, log w/o stack trace
+        logger.error(f"Configuration error: {e}")
+        sys.exit(1)
+    except RuntimeError as e:
+        # Runtime error, log w/o stack trace
+        logger.error(f"Runtime error: {e}")
         sys.exit(1)
     except Exception as e:
         # Unexpected internal error, include full stack trace

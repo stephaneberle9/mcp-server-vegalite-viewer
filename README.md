@@ -1,4 +1,6 @@
-**Vega-Lite Viewer MCP Server**
+<!-- omit from toc -->
+Vega-Lite Viewer MCP Server
+===========================
 
 A [Model Context Protocol](https://modelcontextprotocol.com) (MCP) server that enables creating and displaying interactive data visualizations using the [Vega-Lite](https://vega.github.io/vega-lite) grammar. This server provides tools to generate charts from data and automatically opens them in a web browser for immediate viewing.
 
@@ -54,7 +56,7 @@ uv sync
 # (see --help for application CLI options)
 mcp-server-vegalite-viewer [application options]
 # or
-python -m mcp_server_vegalite_viewer [application options]
+uv run --env-file .env mcp_server_vegalite_viewer [application options]
 
 # Option 2: Run with FastMCP CLI using inferred MCP server instance
 # (see fastmcp run --help for FastMCP CLI options)
@@ -78,16 +80,16 @@ deactivate
 
 ```bash
 # Run the MCP server directly from the sources (see --help for CLI options)
-uv run --project "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
+uv run --env-file .env --project "/path/to/mcp-server-vegalite-viewer" mcp-server-vegalite-viewer [options]
 
 # Run as editable install to enable live code reloading during development (see --help for CLI options)
-uv run --with-editable --project "/absolute path/to/mcp-server-vegalite-viewer project" mcp-server-vegalite-viewer [options]
+uv run --env-file .env --with-editable --project "/path/to/mcp-server-vegalite-viewer" mcp-server-vegalite-viewer [options]
 ```
 
 ### With MCP Inspector
 
 ```bash
-# Start and open MCP inspector in your browser
+# Start and open MCP Inspector in your browser
 npx @modelcontextprotocol/inspector
 ```
 
@@ -96,7 +98,7 @@ npx @modelcontextprotocol/inspector
   | Setting            | Value                                                                                                                                                                                          |
   | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | **Transport Type** | `STDIO`                                                                                                                                                                                        |
-  | **Command**        | **Windows:**<br>`\absolute path\to\mcp-server-vegalite-viewer project\.venv\Scripts\python.exe`<br>**Linux/macOS:**<br>`/absolute path/to/mcp-server-vegalite-viewer project/.venv/bin/python` |
+  | **Command**        | **Windows:**<br>`\absolute path\to\mcp-server-vegalite-viewer project\.venv\Scripts\python.exe`<br>**Linux/macOS:**<br>`/path/to/mcp-server-vegalite-viewer/.venv/bin/python` |
   | **Arguments**      | `-m mcp_server_vegalite_viewer --debug`                                                                                                                                                        |
 
 - Connect to MCP server: `Connect` or `Restart`
@@ -205,7 +207,7 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
 - Open _Claude Desktop_ configuration JSON file (accessible from _Claude Desktop_ > `Settings...` > `Developer` > `Edit config`)
 - Add the following entry under `mcpServers`:
 
-  ```json
+  ```jsonc
   {
     "mcpServers": {
       "vegalite-viewer": {
@@ -213,7 +215,7 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
         "args": [
           "run",
           "--with-editable",
-          "/absolute path/to/mcp-server-vegalite-viewer project",
+          "/path/to/mcp-server-vegalite-viewer",
           "mcp-server-vegalite-viewer",
           "--port",
           "8080",

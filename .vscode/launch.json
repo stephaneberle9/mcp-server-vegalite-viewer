@@ -8,10 +8,10 @@
       "name": "Debug Vega-Lite Viewer",
       "type": "debugpy",
       "request": "launch",
-      "module": "src.mcp_server_vegalite_viewer",
       "python": "${workspaceFolder}/.venv/Scripts/python.exe",
-      "cwd": "${workspaceFolder}",
+      "module": "mcp_server_vegalite_viewer",
       "args": ["--port", "8080"],
+      "cwd": "${workspaceFolder}",
       "justMyCode": false,
       "console": "integratedTerminal"
     }
