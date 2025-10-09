@@ -88,24 +88,38 @@ uv run --env-file .env --with-editable --project "/path/to/mcp-server-vegalite-v
 
 ### With MCP Inspector
 
-```bash
-# Start and open MCP Inspector in your browser
-npx @modelcontextprotocol/inspector
+Create an `mcp.json` file containing:
+
+```jsonc
+{
+  "mcpServers": {
+    "vegalite-viewer": {
+      "command": "uv",
+      "args": [
+        "run",
+        "mcp-server-vegalite-viewer",
+        "--debug"
+      ]
+    }
+  }
+}
 ```
 
-- MCP Server configuration:
+From a terminal, start the MCP Inspector:
 
-  | Setting            | Value                                                                                                                                                                                          |
-  | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | **Transport Type** | `STDIO`                                                                                                                                                                                        |
-  | **Command**        | **Windows:**<br>`\absolute path\to\mcp-server-vegalite-viewer project\.venv\Scripts\python.exe`<br>**Linux/macOS:**<br>`/path/to/mcp-server-vegalite-viewer/.venv/bin/python` |
-  | **Arguments**      | `-m mcp_server_vegalite_viewer --debug`                                                                                                                                                        |
+```bash
+# Start and open MCP Inspector in your browser
+npx -y @modelcontextprotocol/inspector --config mcp.json --server vegalite-viewer
+```
 
+In your browser, connect to your MCP proxy server and use its tools, resources and prompts:
 - Connect to MCP server: `Connect` or `Restart`
 
   > :information_source: The local _Vega-Lite Viewer_ MCP server instance is started automatically
 
-- Find MCP server logs in `%TEMP%\mcp-server-vegalite-viewer.log` (Windows) or `${TMPDIR:-/tmp}/mcp-server-vegalite-viewer.log` (Linux/macOS)
+- List tools: `Tools` > `List Tools`
+- List resources: `Prompts` > `List Prompts`
+- Find MCP proxy server logs under `Server Notifications` and in `%TEMP%\mcp-server-vegalite-viewer.log` (Windows) or `${TMPDIR:-/tmp}/mcp-server-vegalite-viewer.log` (Linux/macOS)
 
 ## Check
 
