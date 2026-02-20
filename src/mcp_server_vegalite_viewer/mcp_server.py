@@ -127,13 +127,10 @@ async def upload_data(name: str, data: list[Any], ctx: Context) -> str:
 
     logger.info(f"Uploading dataset '{name}' (length: {len(data)})...")
 
-    # Initialize session data storage if it doesn't exist
-    if not hasattr(ctx.session, "registered_data"):
-        setattr(ctx.session, "registered_data", {})
-
     # Store the dataset in the session context
-    registered_data = getattr(ctx.session, "registered_data")
+    registered_data: dict = await ctx.get_state("registered_data") or {}
     registered_data[name] = data
+    await ctx.set_state("registered_data", registered_data)
 
     logger.info(f"Dataset '{name}' successfully registered with {len(data)} records")
     return f"Your dataset has been successfully uploaded and registered as '{name}' with {len(data)} records"
@@ -180,10 +177,10 @@ async def visualize_data(name: str, spec: Any, ctx: Context) -> str:
     web_browser.open(fastmcp.settings.port)
 
     # Check if session has registered data and if specified dataset exists
-    if not hasattr(ctx.session, "registered_data"):
+    registered_data: dict | None = await ctx.get_state("registered_data")
+    if not registered_data:
         raise KeyError("No datasets have been uploaded in this session")
 
-    registered_data = getattr(ctx.session, "registered_data")
     if name not in registered_data:
         available_datasets = list(registered_data.keys())
         raise KeyError(
@@ -208,7 +205,6 @@ async def visualize_data(name: str, spec: Any, ctx: Context) -> str:
         raise TypeError("Vega-Lite specification must be a JSON object/dictionary")
 
     # Add specified dataset from session context
-    registered_data = getattr(ctx.session, "registered_data")
     data = registered_data[name]
     vegalite_specification["data"] = {"values": data}
 

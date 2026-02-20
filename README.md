@@ -214,7 +214,7 @@ This will create a `dist` folder containing an `mcp_server_vegalite-viewer X.X.X
 4. Click `Install`, wait (patiently) until installation is complete, and close the install dialog
 5. Locate the `vegalite-viewer` in the `Extensions` list, click `Configure` and adjust viewer web server port and debug logging to your liking
 
-> :no_entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as describe above succeeds, the subsequent start of the _Vega-Lite Viewer_ MCP server fails. Opt for manual installation as a workaround for the time being (see below)
+> :no_entry: Apparently, MCP Bundles don't support Python packages yet. While the installation as described above succeeds, the subsequent start of the _Vega-Lite Viewer_ MCP server fails. Opt for manual installation as a workaround for the time being (see below)
 
 #### Option 2: Manual configuration using the sources
 
