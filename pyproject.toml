@@ -1,7 +1,7 @@
 [project]
 name = "mcp-server-vegalite-viewer"
 dynamic = ["version"]
-description = "A simple data visualization MCP server and viewer web application using Vega-Lite and Uvicorn."
+description = "A data visualization MCP server that renders Vega-Lite charts directly in the chat using MCP Apps."
 readme = "README.md"
 authors = [
     { name = "Stephan Eberle", email = "stephaneberle9@gmail.com" }
@@ -9,10 +9,6 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "fastmcp>=3.0.0",
-    "fastapi",
-    "uvicorn[standard]",
-    "httpx",
-    "psutil"
 ]
 
 [dependency-groups]
@@ -68,4 +64,4 @@ extend-select = ["I", "UP"]
 "src/mcp_server_mango_research_dashboard/__init__.py" = ["E402"]
 
 [tool.codespell]
-skip = "*.lock,pyproject.toml,*PythonImportHelper*"
+skip = "*.lock,pyproject.toml,*PythonImportHelper*,*/resources/viewer_app.html"

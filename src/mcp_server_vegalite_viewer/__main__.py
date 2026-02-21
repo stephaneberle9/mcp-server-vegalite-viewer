@@ -4,11 +4,8 @@ import os
 import sys
 import tempfile
 
-import fastmcp
-
-from . import LOCALHOST, __version__
-from .mcp_server import VegaLiteViewerError, mcp
-from .web_browser import web_browser
+from . import __version__
+from .mcp_server import mcp
 
 logger = logging.getLogger(__name__)
 
@@ -16,21 +13,7 @@ logger = logging.getLogger(__name__)
 def cli():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description=f"Vega-Lite MCP Server and Viewer (version {__version__})"
-    )
-
-    # Server options
-    parser.add_argument(
-        "-p",
-        "--port",
-        type=int,
-        default=8000,
-        help="Port to run the viewer web server on (default: 8000)",
-    )
-    parser.add_argument(
-        "--lazy-view",
-        action="store_true",
-        help="Open viewer app in browser lazily upon first visualization",
+        description=f"Vega-Lite MCP Server (version {__version__})"
     )
 
     # Logging options
@@ -95,43 +78,20 @@ def main():
     configure_logging(args)
 
     try:
-        # Open browser unless lazy view is enabled
-        if not args.lazy_view:
-            logger.info(f"Opening viewer in browser at http://{LOCALHOST}:{args.port}")
-            web_browser.open(args.port)
-
-        # Hack: As we are always running this MCP server using stdio transport, we
-        # leverage the HTTP transport-related MCP server settings to propagate
-        # the viewer web server port
-        fastmcp.settings.port = args.port
-
-        # Start MCP server with stdio transport
         mcp.run(
             transport="stdio",
             log_level=get_log_level_name(args),
         )
     except KeyboardInterrupt:
-        # Graceful shutdown, suppress noisy logs resulting from asyncio.run task cancellation propagation
+        # Graceful shutdown
         pass
-    except BaseExceptionGroup as e:
-        # Required to properly handle exceptions raised in MCP server lifespan
-        cause = next(iter(e.exceptions))
-        if isinstance(cause, VegaLiteViewerError):
-            logger.error(cause)
-        else:
-            # Unexpected internal error, include full stack trace
-            logger.error(f"Internal error: {cause}", exc_info=True)
-        sys.exit(1)
     except ValueError as e:
-        # Configuration error, log w/o stack trace
         logger.error(f"Configuration error: {e}")
         sys.exit(1)
     except RuntimeError as e:
-        # Runtime error, log w/o stack trace
         logger.error(f"Runtime error: {e}")
         sys.exit(1)
     except Exception as e:
-        # Unexpected internal error, include full stack trace
         logger.error(f"Internal error: {e}", exc_info=True)
         sys.exit(1)
 

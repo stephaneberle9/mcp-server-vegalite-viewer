@@ -4,7 +4,7 @@ This file contains information for Claude Code about how to work with this proje
 
 ## Project Overview
 
-A data visualization MCP (Model Context Protocol) server using Vega-Lite and FastAPI. This server allows creating and displaying data visualizations in a web browser through MCP tools.
+A data visualization MCP (Model Context Protocol) server using Vega-Lite and FastMCP. Visualizations are rendered directly in the chat using MCP Apps — no browser window required.
 
 ## Development Setup
 
@@ -43,16 +43,18 @@ uvx --from "W:\GitLab\mcp-server-vegalite-viewer" --reinstall mcp-server-vegalit
 
 ## Build Commands
 
-### Package Building
+### React App (run after changing files in `app/`)
+
+```bash
+cd app && npm install && npm run build
+```
+
+The build output is committed to `src/mcp_server_vegalite_viewer/resources/viewer_app.html`.
+
+### Python Package Building
 
 ```bash
 uv build
-```
-
-### MCPB Bundle Creation
-
-```bash
-python build_mcpb_bundle.py
 ```
 
 ### Type Checking
@@ -63,29 +65,19 @@ pyright
 
 ## Key Files
 
-- `src/mcp_server_vegalite_viewer/mcp_server.py` - Main MCP server implementation with enhanced validation
-- `src/mcp_server_vegalite_viewer/__main__.py` - Enhanced CLI entry point with debug support
-- `src/mcp_server_vegalite_viewer/web_server.py` - FastAPI web server
-- `src/mcp_server_vegalite_viewer/viewer_manager.py` - Visualization management
-- `src/mcp_server_vegalite_viewer/web_browser.py` - Browser integration
-- `src/mcp_server_vegalite_viewer/resources/` - Static resources (HTML templates, JSON specs)
-- `mcpb-bundle/manifest.json` - MCPB configuration and user settings
-- `mcpb-bundle/server/main.py` - MCPB entry point
-- `build_mcpb_bundle.py` - MCPB bundle creation script
+- `src/mcp_server_vegalite_viewer/mcp_server.py` - MCP server: tools, MCP App resource
+- `src/mcp_server_vegalite_viewer/__main__.py` - CLI entry point
+- `src/mcp_server_vegalite_viewer/resources/viewer_app.html` - Built MCP App (React + Vega-Embed, do not edit manually)
+- `app/` - React + Vite source for the MCP App
+- `app/src/App.tsx` - React component that renders Vega-Lite specs
 
 ## Dependencies
 
 - Python 3.12+
-- fastmcp >= 2.11.0 (for session context support)
-- FastAPI
-- Uvicorn
-- httpx
-- psutil
+- fastmcp >= 3.0.0
 
 ## Testing
 
-Run unit tests for enhanced validation:
-
 ```bash
-pytest mcpb-bundle/server/tests/ -v
+pytest -v
 ```

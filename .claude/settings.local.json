@@ -4,7 +4,14 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(mv:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(gh release create:*)",
+      "WebFetch(domain:blog.modelcontextprotocol.io)",
+      "WebFetch(domain:gofastmcp.com)",
+      "WebFetch(domain:modelcontextprotocol.github.io)",
+      "Bash(curl:*)",
+      "Bash(npm run build:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []

@@ -20,3 +20,7 @@ wheels/
 
 # VSCode settings
 .vscode/PythonImportHelper-v2-Completion.json
+
+# Node / React app
+app/node_modules/
+app/package-lock.json

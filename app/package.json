@@ -1,0 +1,26 @@
+{
+  "name": "vegalite-viewer-app",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^0.4.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "vega": "^5.33.1",
+    "vega-embed": "^6",
+    "vega-lite": "^5.23.0",
+    "vega-themes": "^2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "vite": "^6",
+    "vite-plugin-singlefile": "^2"
+  }
+}

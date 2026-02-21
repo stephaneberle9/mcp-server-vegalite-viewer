@@ -1,80 +1,48 @@
 import json
 import logging
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from importlib.resources import files
 from typing import Any
 
-import fastmcp
-import httpx
 from fastmcp import Context, FastMCP
-
-from . import LOCALHOST
-from .web_browser import web_browser
-from .web_server import (
-    DuplicateInstanceOnSamePortError,
-    PortInUseByAnotherServiceError,
-    WebServerController,
-)
+from fastmcp.server.apps import AppConfig
 
 UPLOAD_DATA_TOOL_DESCRIPTION = """
-A tool which allows you to upload a dataset and register it with a name for later use in visualizations.
+A tool to upload and register a JSON dataset by name for use in subsequent visualizations.
 When to use this tool:
-- Use this tool when you have datasets that you want to visualize later.
+- When the user asks to visualize data, call this tool first to register the dataset, then call visualize_data.
 How to use this tool:
-- Provide the name of the dataset (for later reference) and the dataset itself.
+- Provide a short, descriptive name and the dataset as a list of JSON objects (records).
+- Each object should share a consistent set of keys (fields).
 """.strip()
 
 VISUALIZE_DATA_TOOL_DESCRIPTION = """
-A tool which allows you to produce a visualization of an already uploaded dataset based on a provided Vega-Lite specification. You can 
-view the result in your web browser which opens up automatically when you use this tool for the first time.
+A tool to render a Vega-Lite visualization of a registered dataset directly in the chat.
 When to use this tool:
-- At times, it will be advantageous to provide the user with a visual representation of some dataset, rather than just a textual representation.
-- This tool is particularly useful when the dataset is complex or has many dimensions, making it difficult to understand in a tabular format. It is not useful for singular data points.
+- When the dataset is complex or multi-dimensional and a visual representation would be more informative than text.
+- Not useful for single data points.
 How to use this tool:
-- Prior to visualization, dataset must be uploaded and registered with a name using the upload dataset tool.
-- Provide a the name of the dataset and a Vega-Lite specification describing in which way the dataset should be represented. The Vega-Lite specification must be a valid instance of the high-level Vega-Lite JSON schema that is available at https://vega.github.io/schema/vega-lite/v6.json.
+1. Upload the dataset first using the upload_data tool, then reference it by name here.
+2. Analyze the dataset's structure and fields to determine which fields map to which visual channels (x, y, color, size, etc.).
+3. Construct a Vega-Lite specification for the desired chart type. Consult the Vega-Lite documentation (https://vega.github.io/vega-lite/docs) and example gallery (https://vega.github.io/vega-lite/examples) for guidance.
+4. Ensure the spec is a valid instance of the Vega-Lite schema: https://vega.github.io/schema/vega-lite/v6.json. Do not include a "data" key — it is injected automatically from the registered dataset.
 """.strip()
 
-# Create viewer manager instance internal to the MCP server
-_web_server_controller = WebServerController()
+APP_RESOURCE_URI = "ui://vegalite-viewer/view.html"
 
 logger = logging.getLogger(__name__)
 
-
-class VegaLiteViewerError(Exception):
-    """Raised when another service on the this machine is already using the specified port."""
-
-    pass
-
-
-@asynccontextmanager
-async def mcp_lifespan(server: FastMCP) -> AsyncIterator:
-    """Manage viewer web server lifecycle alongside MCP server lifecycle."""
-    try:
-        _web_server_controller.start(fastmcp.settings.port)
-    except DuplicateInstanceOnSamePortError as e:
-        logger.warning(
-            f"Skipping start of viewer web server on port {fastmcp.settings.port}: {e}"
-        )
-        logger.info(
-            "This error occurs systematically when using this MCP server with Claude Desktop. Claude Desktop appears to be always launching two identical instances of every MCP "
-            "server (see log files in Claude Desktop's 'logs' folder for details). This behavior is most likely a bug in Claude Desktop itself. Working around this issue by leaving "
-            "the duplicate MCP server instance running (not doing so and trying to stop it would cause Claude Desktop to consider this MCP server as failed), then simply not starting "
-            "a second viewer web server instance, and letting both MCP server instances share the same viewer web server instance, i.e., the one created by the first MCP server instance."
-        )
-    except PortInUseByAnotherServiceError as e:
-        raise VegaLiteViewerError(
-            f"Failed to start of viewer web server on port {fastmcp.settings.port}: {e}"
-        )
-
-    try:
-        yield
-    finally:
-        await _web_server_controller.shutdown()
-
-
 # Initialize the server
-mcp = FastMCP("Vega-Lite", lifespan=mcp_lifespan)
+mcp = FastMCP("Vega-Lite")
+
+
+@mcp.resource(APP_RESOURCE_URI, app=AppConfig())
+def vegalite_viewer_app() -> str:
+    """Vega-Lite visualization viewer app."""
+    return (
+        files("mcp_server_vegalite_viewer.resources")
+        .joinpath("viewer_app.html")
+        .read_text(encoding="utf-8")
+    )
 
 
 @mcp.prompt(
@@ -84,7 +52,9 @@ mcp = FastMCP("Vega-Lite", lifespan=mcp_lifespan)
 def create_simple_chart_for_sample_dataset(
     dataset: dict, chart_type: str = "bar"
 ) -> str:
-    return f"Create a simple {chart_type} chart for the following JSON dataset and display it in my web browser: {dataset}"
+    return (
+        f"Create a simple {chart_type} chart for the following JSON dataset: {dataset}"
+    )
 
 
 # Register the upload data tool
@@ -137,7 +107,11 @@ async def upload_data(name: str, data: list[Any], ctx: Context) -> str:
 
 
 # Register the visualize data tool
-@mcp.tool(name="visualize_data", description=VISUALIZE_DATA_TOOL_DESCRIPTION)
+@mcp.tool(
+    name="visualize_data",
+    description=VISUALIZE_DATA_TOOL_DESCRIPTION,
+    app=AppConfig(resource_uri=APP_RESOURCE_URI),
+)
 async def visualize_data(name: str, spec: Any, ctx: Context) -> str:
     """Create and display a visualization of a registered dataset using a Vega-Lite specification.
 
@@ -146,15 +120,13 @@ async def visualize_data(name: str, spec: Any, ctx: Context) -> str:
         spec: Vega-Lite specification (as dict or JSON string) describing the visualization
 
     Returns:
-        Success message with viewer app URL
+        Vega-Lite specification JSON string (rendered inline in the chat by the MCP app)
 
     Raises:
         ValueError: If name is empty or spec is invalid
         TypeError: If spec is not dict or string
         KeyError: If dataset name not found
         json.JSONDecodeError: If spec string is invalid JSON
-        httpx.RequestError: If HTTP request to viewer web server fails
-        httpx.HTTPStatusError: If viewer web server returns an error status
 
     Note:
         FastMCP automatically converts exceptions into MCP error responses.
@@ -172,9 +144,6 @@ async def visualize_data(name: str, spec: Any, ctx: Context) -> str:
         raise TypeError("Vega-Lite specification must be a dictionary or JSON string")
 
     logger.info(f"Visualizing dataset '{name}'...")
-
-    # (Re-)open web browser with viewer app
-    web_browser.open(fastmcp.settings.port)
 
     # Check if session has registered data and if specified dataset exists
     registered_data: dict | None = await ctx.get_state("registered_data")
@@ -204,28 +173,13 @@ async def visualize_data(name: str, spec: Any, ctx: Context) -> str:
     if not isinstance(vegalite_specification, dict):
         raise TypeError("Vega-Lite specification must be a JSON object/dictionary")
 
-    # Add specified dataset from session context
+    # Inject the dataset into the spec
     data = registered_data[name]
     vegalite_specification["data"] = {"values": data}
 
-    logger.info(f"Creating visualization for dataset '{name}' with {len(data)} records")
+    logger.info(
+        f"Returning visualization spec for dataset '{name}' with {len(data)} records"
+    )
 
-    # Send the completed visualization specification to viewer web server via HTTP POST
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"http://{LOCALHOST}:{fastmcp.settings.port}/live-data",
-                json={"spec": vegalite_specification},
-            )
-            response.raise_for_status()
-        return f"The visualization of the '{name}' dataset has been successfully created and sent to the viewer app running in your web browser (see http://{LOCALHOST}:{fastmcp.settings.port})."
-    except httpx.RequestError as e:
-        raise httpx.RequestError(
-            f"Failed to send the visualization for the '{name}' dataset to viewer web server: {e}"
-        )
-    except httpx.HTTPStatusError as e:
-        raise httpx.HTTPStatusError(
-            f"The viewer web server returned status {e.response.status_code} when processing the visualization for the '{name}' dataset: {e.response.text}",
-            request=e.request,
-            response=e.response,
-        )
+    # Return the completed spec as JSON — the MCP app renders it inline in the chat
+    return json.dumps(vegalite_specification)
