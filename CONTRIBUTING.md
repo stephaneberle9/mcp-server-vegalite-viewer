@@ -114,7 +114,16 @@ npx -y @modelcontextprotocol/inspector --config mcp.json --server vegalite-viewe
 Code Quality
 ------------
 
-Pre-commit hooks are configured in [`.pre-commit-config.yaml`](.pre-commit-config.yaml).
+This project uses `pre-commit` hooks for running static checks to maintain
+high code quality standards. These static checks include:
+
+| Hook          | Purpose                        |
+|---------------|--------------------------------|
+| `ruff-check`  | Python linting (with auto-fix) |
+| `ruff-format` | Python code formatting         |
+| `ty check`    | Python type checking           |
+| `prettier`    | YAML / JSON formatting         |
+| `codespell`   | Spell checking                 |
 
 ### Enable automatic execution on git commit
 
@@ -132,17 +141,12 @@ uv run pre-commit install
 ```bash
 # Run all checks on all files
 uv run pre-commit run --all-files
+
+# Run individual tools
+uv run ruff format          # Code formatting
+uv run ruff check --fix     # Linting with auto-fix
+uv run ty check             # Type checking
 ```
-
-Hooks that run on every commit:
-
-| Hook          | Purpose                        |
-|---------------|--------------------------------|
-| `ruff-check`  | Python linting (with auto-fix) |
-| `ruff-format` | Python code formatting         |
-| `ty check`    | Python type checking           |
-| `prettier`    | YAML / JSON formatting         |
-| `codespell`   | Spell checking                 |
 
 Building the Python Package
 ----------------------------
