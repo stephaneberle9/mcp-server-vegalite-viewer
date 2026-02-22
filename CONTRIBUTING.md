@@ -6,8 +6,12 @@ Contributing
   - [Prerequisites](#prerequisites)
   - [Initial Setup](#initial-setup)
 - [Building the React App](#building-the-react-app)
-- [Running the Server in Development](#running-the-server-in-development)
+- [Running the Server](#running-the-server)
+  - [Inside dev environment](#inside-dev-environment)
+  - [With MCP Inspector](#with-mcp-inspector)
 - [Code Quality](#code-quality)
+  - [Enable automatic execution on git commit](#enable-automatic-execution-on-git-commit)
+  - [Manual execution](#manual-execution)
 - [Building the Python Package](#building-the-python-package)
 - [Release Process](#release-process)
 
@@ -22,9 +26,24 @@ Development Setup
 
 ### Initial Setup
 
+Install required development tools:
+
+```bash
+# Install build tools and uv package manager
+python -m pip install build uv
+```
+
 Clone the repository and install the package in editable mode:
 
 ```bash
+# Create virtual environment
+uv venv
+
+# Activate virtual environment
+.venv\Scripts\activate  # Windows
+source ./.venv/bin/activate  # Linux/macOS
+
+# Install project in editable mode with live code reloading
 uv sync
 ```
 
@@ -45,17 +64,29 @@ cd app && npm install && npm run build
 Commit `src/mcp_server_vegalite_viewer/resources/viewer_app.html` along with any `app/`
 changes.
 
-Running the Server in Development
+Running the Server
 ----------------------------------
 
-Start the server directly from the project:
+### Inside dev environment
 
 ```bash
+# Activate virtual environment
+.venv\Scripts\activate  # Windows
+source ./.venv/bin/activate  # Linux/macOS
+
+# Start the server
 mcp-server-vegalite-viewer --debug
+
+# Press Ctrl+C to exit
+
+# Deactivate virtual environment when done
+deactivate
 ```
 
-To inspect the server interactively, create an `mcp.json` file (it is git-ignored) and
-start [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
+### With MCP Inspector
+
+To inspect the server interactively, create an `mcp.json` file (it is
+git-ignored) containing:
 
 ```jsonc
 {
@@ -74,6 +105,8 @@ start [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
 }
 ```
 
+From a terminal, start the MCP Inspector:
+
 ```bash
 npx -y @modelcontextprotocol/inspector --config mcp.json --server vegalite-viewer
 ```
@@ -82,16 +115,23 @@ Code Quality
 ------------
 
 Pre-commit hooks are configured in [`.pre-commit-config.yaml`](.pre-commit-config.yaml).
-Install them after the initial setup:
+
+### Enable automatic execution on git commit
 
 ```bash
-pre-commit install
+# Activate virtual environment
+.venv\Scripts\activate  # Windows
+source ./.venv/bin/activate  # Linux/macOS
+
+# Install pre-commit hooks
+uv run pre-commit install
 ```
 
-Run all hooks manually:
+### Manual execution
 
 ```bash
-pre-commit run --all-files
+# Run all checks on all files
+uv run pre-commit run --all-files
 ```
 
 Hooks that run on every commit:
@@ -107,11 +147,23 @@ Hooks that run on every commit:
 Building the Python Package
 ----------------------------
 
+For publishing to PyPI or integrating with Python package managers:
+
 ```bash
+# Activate virtual environment
+.venv\Scripts\activate  # Windows
+source ./.venv/bin/activate  # Linux/macOS
+
+# Install project dependencies
+uv sync --no-dev
+
+# Build distribution packages
 uv build
 ```
 
-Output is written to `dist/`.
+This will create a `dist` folder containing an
+`mcp_server_vegalite_viewer-X.X.X.tar.gz` and an
+`mcp_server_vegalite_viewer-X.X.X-py3-none-any.whl` file.
 
 Release Process
 ---------------
