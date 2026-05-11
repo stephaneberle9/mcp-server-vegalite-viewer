@@ -60,8 +60,7 @@ extend-select = ["I", "UP"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401", "I001", "RUF013"]
-# allow imports not at the top of the file
-"src/mcp_server_mango_research_dashboard/__init__.py" = ["E402"]
+"src/mcp_server_vegalite_viewer/__init__.py" = ["E402"]
 
 [tool.codespell]
 skip = "*.lock,pyproject.toml,*PythonImportHelper*,*/resources/viewer_app.html"
